@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "label": "파랑",
+  "apps": {
+    "vscode": {
+      "colorCustomizations": "{\n    \"[Dark Modern]\": {\n      \"focusBorder\": \"#0a84ff\",\n\n      \"button.background\": \"#0a84ff\",\n      \"button.foreground\": \"#111111\",\n      \"button.hoverBackground\": \"#2290ff\",\n\n      \"activityBar.activeBorder\": \"#0a84ff\",\n      \"activityBarBadge.background\": \"#0a84ff\",\n      \"activityBarBadge.foreground\": \"#111111\",\n\n      \"tab.activeBorderTop\": \"#0a84ff\",\n      \"tab.selectedBorderTop\": \"#9dceff\",\n\n      \"panelTitle.activeBorder\": \"#0a84ff\",\n      \"progressBar.background\": \"#0a84ff\",\n\n      \"statusBar.debuggingBackground\": \"#0a84ff\",\n      \"statusBar.debuggingForeground\": \"#111111\",\n      \"statusBarItem.remoteBackground\": \"#0a84ff\",\n      \"statusBarItem.remoteForeground\": \"#111111\",\n      \"statusBar.focusBorder\": \"#0a84ff\",\n      \"statusBarItem.focusBorder\": \"#0a84ff\",\n\n      \"terminal.tab.activeBorder\": \"#0a84ff\",\n      \"editorGutter.modifiedBackground\": \"#0a84ff\",\n\n      \"menu.selectionBackground\": \"#0a84ff33\",\n      \"inputOption.activeBorder\": \"#0a84ff\",\n      \"inputOption.activeBackground\": \"#0a84ff55\",\n\n      \"textLink.foreground\": \"#6cb5ff\",\n      \"textLink.activeForeground\": \"#9dceff\",\n\n      \"welcomePage.progress.foreground\": \"#0a84ff\",\n      // Quick Pick / Command Palette 선택 줄\n      \"quickInputList.focusBackground\": \"#0a84ff44\",\n      \"quickInputList.focusForeground\": \"#ffffff\",\n      \"quickInputList.focusIconForeground\": \"#84c2ff\",\n\n      // Explorer, Settings, 메뉴 등 리스트 hover/selection\n      \"list.hoverBackground\": \"#0a84ff22\",\n      \"list.hoverForeground\": \"#ffffff\",\n      \"list.focusBackground\": \"#0a84ff44\",\n      \"list.focusForeground\": \"#ffffff\",\n      \"list.activeSelectionBackground\": \"#0a84ff55\",\n      \"list.activeSelectionForeground\": \"#ffffff\",\n      \"list.inactiveSelectionBackground\": \"#0a84ff33\",\n      \"list.highlightForeground\": \"#84c2ff\",\n\n      // 드래그한 텍스트 선택 영역\n      \"selection.background\": \"#0a84ff66\",\n      \"editor.selectionBackground\": \"#0a84ff66\",\n      \"editor.inactiveSelectionBackground\": \"#0a84ff33\",\n      \"editor.selectionHighlightBackground\": \"#0a84ff26\",\n      \"terminal.selectionBackground\": \"#0a84ff66\",\n      \"terminal.inactiveSelectionBackground\": \"#0a84ff33\",\n    }\n  }"
+    },
+    "codex": {
+      "appearanceLightChromeTheme": {
+        "accent": "#0a84ff",
+        "accentSource": "custom"
+      },
+      "appearanceDarkChromeTheme": {
+        "accent": "#0a84ff",
+        "accentSource": "custom"
+      }
+    }
+  }
+}

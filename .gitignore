@@ -1,0 +1,21 @@
+.DS_Store
+/outputs/
+/work/
+.build/
+*.app/
+*.zip
+__pycache__/
+*.pyc
+
+# Local prototypes retained for reference, not part of the native app.
+/src/AccentBar/*.py
+/src/AccentBar/macos_accent_helper.swift
+/tests/test_accentbar.py
+
+# Local environment and credentials.
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision

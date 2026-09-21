@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "label": "핑크",
+  "apps": {
+    "vscode": {
+      "colorCustomizations": "{\n    \"[Dark Modern]\": {\n      \"focusBorder\": \"#ff4fa3\",\n\n      \"button.background\": \"#ff4fa3\",\n      \"button.hoverBackground\": \"#e63f93\",\n\n      \"activityBar.activeBorder\": \"#ff4fa3\",\n      \"activityBarBadge.background\": \"#ff4fa3\",\n\n      \"tab.activeBorderTop\": \"#ff4fa3\",\n      \"tab.selectedBorderTop\": \"#ff9ccf\",\n\n      \"panelTitle.activeBorder\": \"#ff4fa3\",\n      \"progressBar.background\": \"#ff4fa3\",\n\n      \"statusBar.debuggingBackground\": \"#ff4fa3\",\n      \"statusBarItem.remoteBackground\": \"#ff4fa3\",\n      \"statusBar.focusBorder\": \"#ff4fa3\",\n      \"statusBarItem.focusBorder\": \"#ff4fa3\",\n\n      \"terminal.tab.activeBorder\": \"#ff4fa3\",\n      \"editorGutter.modifiedBackground\": \"#ff4fa3\",\n\n      \"menu.selectionBackground\": \"#ff4fa333\",\n      \"inputOption.activeBorder\": \"#ff4fa3\",\n      \"inputOption.activeBackground\": \"#ff4fa355\",\n\n      \"textLink.foreground\": \"#ff7ab8\",\n      \"textLink.activeForeground\": \"#ff9ccf\",\n\n      \"welcomePage.progress.foreground\": \"#ff4fa3\",\n      // Quick Pick / Command Palette 선택 줄\n      \"quickInputList.focusBackground\": \"#ff4fa344\",\n      \"quickInputList.focusForeground\": \"#ffffff\",\n      \"quickInputList.focusIconForeground\": \"#ff8fc8\",\n\n      // Explorer, Settings, 메뉴 등 리스트 hover/selection\n      \"list.hoverBackground\": \"#ff4fa322\",\n      \"list.hoverForeground\": \"#ffffff\",\n      \"list.focusBackground\": \"#ff4fa344\",\n      \"list.focusForeground\": \"#ffffff\",\n      \"list.activeSelectionBackground\": \"#ff4fa355\",\n      \"list.activeSelectionForeground\": \"#ffffff\",\n      \"list.inactiveSelectionBackground\": \"#ff4fa333\",\n      \"list.highlightForeground\": \"#ff8fc8\",\n\n      // 드래그한 텍스트 선택 영역\n      \"selection.background\": \"#ff4fa366\",\n      \"editor.selectionBackground\": \"#ff4fa366\",\n      \"editor.inactiveSelectionBackground\": \"#ff4fa333\",\n      \"editor.selectionHighlightBackground\": \"#ff4fa326\",\n      \"terminal.selectionBackground\": \"#ff4fa366\",\n      \"terminal.inactiveSelectionBackground\": \"#ff4fa333\",\n    }\n  }"
+    },
+    "codex": {
+      "appearanceLightChromeTheme": {
+        "accent": "#ff4fa3",
+        "accentSource": "custom"
+      },
+      "appearanceDarkChromeTheme": {
+        "accent": "#ff4fa3",
+        "accentSource": "custom"
+      }
+    }
+  }
+}
