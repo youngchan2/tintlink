@@ -190,7 +190,7 @@ struct AccentView: View {
                 RoundedRectangle(cornerRadius: 13).fill((state.currentPalette?.color ?? .secondary).opacity(0.15))
                 Image(systemName: "paintpalette.fill").font(.system(size: 23)).foregroundStyle(state.currentPalette?.color ?? .primary)
             }.frame(width: 48, height: 48)
-            Text("TinkLink").font(.system(size: 20, weight: .bold))
+            Text("TintLink").font(.system(size: 20, weight: .bold))
             Spacer()
             if state.busy { ProgressView().controlSize(.small).accessibilityLabel("처리 중") }
             else {
@@ -345,10 +345,10 @@ struct AccentView: View {
         item = NSStatusBar.system.statusItem(withLength: 30)
         item.autosaveName = "AccentBarStatusItem"
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: "paintpalette.fill", accessibilityDescription: "TinkLink")
+            button.image = NSImage(systemSymbolName: "paintpalette.fill", accessibilityDescription: "TintLink")
             button.image?.isTemplate = true
-            button.toolTip = "TinkLink"
-            button.setAccessibilityLabel("TinkLink 열기")
+            button.toolTip = "TintLink"
+            button.setAccessibilityLabel("TintLink 열기")
             button.target = self
             button.action = #selector(togglePopover)
         }

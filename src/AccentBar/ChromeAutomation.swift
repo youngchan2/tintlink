@@ -148,7 +148,7 @@ final class ChromeAutomation {
     }
 
     func apply() throws -> String {
-        guard Self.isAuthorized else { throw failure("Chrome 연결을 위해 손쉬운 사용에서 ‘TinkLink’를 허용해 주세요.") }
+        guard Self.isAuthorized else { throw failure("Chrome 연결을 위해 손쉬운 사용에서 ‘TintLink’를 허용해 주세요.") }
         let root = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Google/Chrome")
         preferences = try plan.preferencesURL(root: root)
         guard let desired = ChromeColor.hue(ChromeColor.target(for: plan.hex)),
