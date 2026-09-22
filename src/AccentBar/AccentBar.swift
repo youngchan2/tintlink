@@ -78,7 +78,9 @@ enum Backend {
 
 @MainActor final class AppState: ObservableObject {
     @Published var rows = [TargetRow]()
-    @Published var targets: Set<String>
+    @Published private(set) var selection: TargetSelection
+    var targets: Set<String> { selection.enabled }
+    var visibleRows: [TargetRow] { rows.filter { selection.visible.contains($0.id) } }
     @Published var busy = false
     @Published var message = "색상을 누르면 선택한 대상에 함께 적용됩니다."
     @Published var isError = false
@@ -90,7 +92,12 @@ enum Backend {
 
     init() {
         let saved = UserDefaults.standard.stringArray(forKey: "selectedTargets")
-        targets = Set(saved ?? ["system", "vscode", "codex", "chrome"])
+        let existingInstallation = UserDefaults.standard.object(forKey: "chromeProfileIDs") != nil || UserDefaults.standard.object(forKey: "chromeProfile") != nil
+        selection = TargetSelection(visible: UserDefaults.standard.stringArray(forKey: "visibleTargets"), enabled: saved, previouslyLaunched: existingInstallation)
+        // Persist even an empty first-run choice so it cannot look like a
+        // pre-1.1 install after status discovery saves Chrome profile IDs.
+        UserDefaults.standard.set(selection.visible.sorted(), forKey: "visibleTargets")
+        UserDefaults.standard.set(selection.enabled.sorted(), forKey: "selectedTargets")
         if let ids = UserDefaults.standard.stringArray(forKey: "chromeProfileIDs") {
             chromeProfileIDs = Set(ids)
             hasProfileSelection = true
@@ -117,8 +124,25 @@ enum Backend {
         return Palette.all.first { $0.hex.lowercased() == first.lowercased() }
     }
     func toggle(_ id: String, on: Bool) {
-        if on { targets.insert(id) } else { targets.remove(id) }
-        UserDefaults.standard.set(Array(targets).sorted(), forKey: "selectedTargets")
+        guard !busy else { return }
+        selection.setEnabled(id, on)
+        saveTargets()
+    }
+    func addTarget(_ id: String) {
+        guard !busy else { return }
+        selection.add(id)
+        saveTargets()
+    }
+    func removeTarget(_ id: String) {
+        guard !busy else { return }
+        selection.remove(id)
+        saveTargets()
+    }
+    private func saveTargets() {
+        UserDefaults.standard.set(selection.visible.sorted(), forKey: "visibleTargets")
+        UserDefaults.standard.set(selection.enabled.sorted(), forKey: "selectedTargets")
+        message = selection.visible.isEmpty ? "앱을 추가한 뒤 색상을 선택해 주세요." : "색상을 누르면 선택한 대상에 함께 적용됩니다."
+        isError = false
     }
     func selectProfile(_ id: String, on: Bool) {
         guard !busy else { return }
@@ -167,12 +191,20 @@ enum Backend {
 
 struct AccentView: View {
     @ObservedObject var state: AppState
+    @ObservedObject var updater: AppUpdater
+    var checkForUpdates: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var editingTargets = false
     private let border = Color.primary.opacity(0.09)
+    private var displayedRows: [TargetRow] { editingTargets ? state.rows : state.visibleRows }
+    private var editAnimation: Animation? { reduceMotion ? nil : .easeInOut(duration: 0.25) }
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             header
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) { mainView }
+                VStack(alignment: .leading, spacing: 16) {
+                    mainView
+                }
                 .padding(.bottom, 2)
             }
             footer
@@ -195,6 +227,16 @@ struct AccentView: View {
                 Button { state.perform("status") } label: { Image(systemName: "arrow.clockwise").font(.system(size: 13, weight: .medium)) }
                     .buttonStyle(.plain).help("현재 색상 새로고침").accessibilityLabel("현재 색상 새로고침")
             }
+            Menu {
+                Text("TintLink \(updater.version)")
+                Divider()
+                Button("업데이트 확인…", action: checkForUpdates).disabled(!updater.canCheck || state.busy)
+                Toggle("업데이트 자동 확인", isOn: Binding(get: { updater.automaticallyChecks }, set: { updater.setAutomaticallyChecks($0) }))
+            } label: {
+                Image(systemName: "ellipsis.circle").font(.system(size: 15))
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .help("업데이트 및 앱 정보").accessibilityLabel("업데이트 및 앱 정보")
         }
     }
     private var mainView: some View {
@@ -212,7 +254,7 @@ struct AccentView: View {
                                 }
                             }.frame(maxWidth: .infinity).contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain).disabled(!state.canApply)
+                        .buttonStyle(.plain).disabled(!state.canApply || editingTargets)
                         .help(palette.label + " · " + palette.hex)
                         .accessibilityLabel(palette.label + " 적용")
                         .accessibilityValue(state.currentPalette?.id == palette.id ? "현재 색상" : palette.hex)
@@ -220,39 +262,97 @@ struct AccentView: View {
                 }
             }.padding(.vertical, 5)
             VStack(alignment: .leading, spacing: 9) {
-                Text("적용 대상").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
-                VStack(spacing: 0) {
-                    ForEach(Array(state.rows.enumerated()), id: \.element.id) { index, row in
-                        HStack(spacing: 11) {
-                            Image(nsImage: TargetIcons.image(for: row.id))
-                                .resizable().renderingMode(.original).interpolation(.high).scaledToFit()
-                                .frame(width: 26, height: 26).accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(row.label).font(.system(size: 13, weight: .medium))
-                                Text(row.id == "chrome" && row.available ? (state.chromeProfileIDs.isEmpty ? "적용할 프로필을 선택해 주세요" : "\(state.chromeProfileIDs.count)개 프로필 선택 · Chrome에서 직접 적용") : row.detail)
-                                    .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(2)
-                                if row.id == "chrome" && !state.chromeAuthorized {
-                                    Button("Chrome 연결 허용") { ChromeAutomation.openPermissionSettings() }
-                                        .font(.system(size: 11)).buttonStyle(.link).disabled(state.busy)
-                                }
-                            }
-                            Spacer()
-                            if !row.color.isEmpty { Circle().fill(Color(hex: row.color)).frame(width: 9, height: 9).accessibilityHidden(true) }
-                            Toggle(row.label, isOn: Binding(get: { state.targets.contains(row.id) && row.available }, set: { state.toggle(row.id, on: $0) }))
-                                .labelsHidden().toggleStyle(.switch).controlSize(.mini).disabled(state.busy || !row.available)
-                                .accessibilityLabel(row.label + " 적용 대상")
-                        }.padding(.horizontal, 13).padding(.vertical, 11)
-                        if row.id == "chrome" && state.targets.contains("chrome") && !state.chromeProfiles.isEmpty {
-                            chromeProfilePicker
-                        }
-                        if index < state.rows.count - 1 { Divider().padding(.leading, 50) }
+                HStack {
+                    Text("적용 대상").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                    Spacer()
+                    Button(editingTargets ? "완료" : "편집") {
+                        withAnimation(editAnimation) { editingTargets.toggle() }
                     }
-                    if state.rows.isEmpty { Text("현재 색상을 확인하고 있습니다…").font(.system(size: 12)).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(35) }
+                        .font(.system(size: 11)).buttonStyle(.plain).disabled(state.busy)
+                        .accessibilityLabel(editingTargets ? "적용 대상 편집 완료" : "적용 대상 편집")
+                }
+                VStack(spacing: 0) {
+                    ForEach(Array(displayedRows.enumerated()), id: \.element.id) { index, row in
+                        VStack(spacing: 0) {
+                            targetRow(row)
+                            if !editingTargets && row.id == "chrome" && state.targets.contains("chrome") && !state.chromeProfiles.isEmpty {
+                                chromeProfilePicker
+                            }
+                            if index < displayedRows.count - 1 { Divider().padding(.leading, 50) }
+                        }
+                        .transition(.opacity)
+                    }
+                    if displayedRows.isEmpty {
+                        VStack {
+                            Text(state.busy ? "현재 색상을 확인하고 있습니다…" : "편집을 눌러 색상을 바꿀 앱을 추가해 주세요.")
+                                .font(.system(size: 12)).foregroundStyle(.secondary)
+                        }.frame(maxWidth: .infinity).padding(30)
+                    }
                 }
                 .background(Color.primary.opacity(0.025), in: RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(border))
             }
         }
+    }
+    private func targetRow(_ row: TargetRow) -> some View {
+        HStack(spacing: 11) {
+            Image(nsImage: TargetIcons.image(for: row.id))
+                .resizable().renderingMode(.original).interpolation(.high).scaledToFit()
+                .frame(width: 26, height: 26).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(row.label).font(.system(size: 13, weight: .medium))
+                Text(row.id == "chrome" && row.available ? (state.chromeProfileIDs.isEmpty ? "적용할 프로필을 선택해 주세요" : "\(state.chromeProfileIDs.count)개 프로필 선택 · Chrome에서 직접 적용") : row.detail)
+                    .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(2)
+                if !editingTargets && row.id == "chrome" && !state.chromeAuthorized {
+                    Button("Chrome 연결 허용") { ChromeAutomation.openPermissionSettings() }
+                        .font(.system(size: 11)).buttonStyle(.link).disabled(state.busy)
+                }
+            }
+            Spacer(minLength: 0)
+            // Keep the label in place while the controls slide through this slot.
+            Color.clear.frame(width: 73, height: 1).accessibilityHidden(true)
+        }
+        .padding(.leading, 13).padding(.vertical, 11)
+        .overlay(alignment: .trailing) { targetControls(row).frame(width: 73) }
+    }
+    private func targetControls(_ row: TargetRow) -> some View {
+        let added = state.selection.visible.contains(row.id)
+        let actionColor = added ? Color.red : Color.green
+        return ZStack(alignment: .trailing) {
+            HStack(spacing: 11) {
+                if !row.color.isEmpty { Circle().fill(Color(hex: row.color)).frame(width: 9, height: 9).accessibilityHidden(true) }
+                Toggle(row.label, isOn: Binding(get: { state.targets.contains(row.id) && row.available }, set: { state.toggle(row.id, on: $0) }))
+                    .labelsHidden().toggleStyle(.switch).controlSize(.mini)
+                    .disabled(state.busy || !row.available || editingTargets)
+                    .accessibilityLabel(row.label + " 적용 대상")
+            }
+            .padding(.trailing, 13)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .offset(x: editingTargets ? -73 : 0).opacity(editingTargets ? 0 : 1)
+            .accessibilityHidden(editingTargets)
+            ZStack {
+                Rectangle().fill(actionColor.opacity(0.10)).accessibilityHidden(true)
+                Button {
+                    withAnimation(editAnimation) {
+                        if added { state.removeTarget(row.id) } else { state.addTarget(row.id) }
+                    }
+                } label: {
+                    Image(systemName: added ? "minus.circle" : "plus.circle")
+                        .font(.system(size: 18, weight: .medium)).foregroundStyle(actionColor)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain).disabled(state.busy || !editingTargets)
+                .help(added ? "목록에서 제거" : "목록에 추가")
+                .accessibilityLabel(row.label + (added ? " 목록에서 제거" : " 목록에 추가"))
+            }
+            .frame(width: 60)
+            .offset(x: editingTargets ? 0 : 73)
+            .accessibilityHidden(!editingTargets)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+        .clipped()
     }
     private var chromeProfilePicker: some View {
         VStack(alignment: .leading, spacing: 9) {
@@ -317,6 +417,7 @@ struct AccentView: View {
     private var item: NSStatusItem!
     private let popover = NSPopover()
     private let state = AppState()
+    private let updater = AppUpdater()
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Reopening the bundle should reveal the existing item, not create duplicates.
         if let identifier = Bundle.main.bundleIdentifier,
@@ -338,8 +439,16 @@ struct AccentView: View {
         }
         popover.behavior = .transient
         popover.contentSize = NSSize(width: 438, height: 660)
-        popover.contentViewController = NSHostingController(rootView: AccentView(state: state))
+        popover.contentViewController = NSHostingController(rootView: AccentView(state: state, updater: updater, checkForUpdates: { [weak self] in
+            self?.popover.performClose(nil)
+            self?.updater.check()
+        }))
+        updater.start()
         showPopover()
+    }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // Sparkle must not replace the app in the middle of a color change.
+        state.busy ? .terminateCancel : .terminateNow
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showPopover()
