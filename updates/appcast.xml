@@ -1,0 +1,36 @@
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>TintLink</title>
+        <item>
+            <title>1.1.0</title>
+            <pubDate>Tue, 22 Sep 2026 15:49:32 +0900</pubDate>
+            <link>https://github.com/youngchan2/tintlink</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/youngchan2/tintlink/releases/tag/v1.1.0</sparkle:fullReleaseNotesLink>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# TintLink v1.1.0
+
+Choose which supported apps appear in TintLink, and receive future updates inside the app.
+
+- Edit your list in place to add or remove macOS, VS Code, Codex, and Chrome with sliding controls. Existing selections are preserved; new installs start with an empty list.
+- Temporarily pause a listed target with its switch. Removing Chrome preserves your profile selection for when you add it again.
+- Check for updates from the top-right menu. Sparkle downloads and verifies updates, then installs and relaunches when you choose to proceed.
+
+Requires Apple Silicon and macOS 13+. Download the app ZIP, unzip it, and move TintLink.app to Applications. Users on 1.0.x must install this version manually once to enable future in-app updates.
+
+This build is not Apple-notarized. Follow the README's first-launch instructions if macOS blocks it. Updates may require reconnecting Accessibility permission for Chrome.
+]]></description>
+            <enclosure url="https://github.com/youngchan2/tintlink/releases/download/v1.1.0/TintLink-1.1.0-macos-arm64.zip" length="1382664" type="application/octet-stream" sparkle:edSignature="2WjwqXr32glwv5iruZHKT75UPdGl1cqAb8BBXLT9PVLDpUvwdHsfdcnxaEZA1z2fQwf9UmJs98H67wiUKTBbAA=="/>
+        </item>
+    </channel>
+</rss>
+<!-- sparkle-signatures:
+edSignature: nax8214b5jw9DlzAxz40xJYDkEQBpQTBGFtXONTlT3boaCjaS6zzEwl70RR2pwqWHsayUSsNydbkdax3hmtbAw==
+length: 2326
+-->
