@@ -166,17 +166,18 @@ final class ChromeAutomation {
             connect(to: chrome)
             previousWindows = elements(application, kAXWindowsAttribute)
         }
-        // Chrome's process singleton forwards these arguments to an existing
-        // browser, selecting the requested profile without touching other tabs.
+        // Launch Services gives Chrome its own macOS privacy identity. Spawning
+        // its executable with Process attributes Chrome's app-management and
+        // other permission requests to TintLink, causing blocked notifications.
         guard let bundle = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome") else { throw failure("Google Chrome 앱을 찾지 못했습니다.") }
-        let executable = bundle.appendingPathComponent("Contents/MacOS/Google Chrome")
-        guard FileManager.default.isExecutableFile(atPath: executable.path) else { throw failure("Google Chrome 앱을 찾지 못했습니다.") }
-        let launch = Process()
-        launch.executableURL = executable
-        launch.arguments = ["--profile-directory=" + plan.profile, "--new-window", "chrome://newtab/"]
-        launch.standardOutput = FileHandle.nullDevice
-        launch.standardError = FileHandle.nullDevice
-        try launch.run()
+        let configuration = NSWorkspace.OpenConfiguration()
+        // Arguments only reach a new instance. Chrome's singleton forwards them
+        // to an existing browser, retaining the selected profile on warm starts.
+        configuration.createsNewApplicationInstance = true
+        configuration.arguments = ["--profile-directory=" + plan.profile, "--new-window", "chrome://newtab/"]
+        NSWorkspace.shared.openApplication(at: bundle, configuration: configuration, completionHandler: nil)
+        // Verify the actual profile window: the short-lived forwarding process
+        // can exit before Launch Services reports that it finished launching.
         try wait("Chrome의 ‘\(plan.label)’ 프로필 창을 열지 못했습니다.", seconds: 15) {
             guard let chrome = NSRunningApplication.runningApplications(withBundleIdentifier: "com.google.Chrome").first else { return false }
             self.connect(to: chrome)

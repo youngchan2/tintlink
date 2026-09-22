@@ -106,7 +106,6 @@ enum Backend {
     var readyTargets: [String] { rows.filter { $0.available && targets.contains($0.id) && ($0.id != "chrome" || !chromeProfileIDs.isEmpty) }.map(\.id) }
     var allProfilesSelected: Bool { !chromeProfiles.isEmpty && chromeProfiles.allSatisfy { chromeProfileIDs.contains($0.id) } }
     var canApply: Bool { !busy && !readyTargets.isEmpty }
-    var canImport: Bool { !busy && readyTargets.contains(where: { $0 != "system" }) && rows.contains(where: { $0.id == "system" && $0.available }) }
     var currentPalette: Palette? {
         var colors = rows.filter { $0.id != "chrome" && $0.available && targets.contains($0.id) }.map(\.color)
         if targets.contains("chrome") && chromeAuthorized {
@@ -176,7 +175,6 @@ struct AccentView: View {
                 VStack(alignment: .leading, spacing: 16) { mainView }
                 .padding(.bottom, 2)
             }
-            feedback
             footer
         }
         .padding(22)
@@ -254,9 +252,6 @@ struct AccentView: View {
                 .background(Color.primary.opacity(0.025), in: RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(border))
             }
-            VStack(spacing: 8) {
-                actionButton("시스템 색상 가져오기", symbol: "arrow.down.circle", disabled: !state.canImport) { state.perform("system") }
-            }
         }
     }
     private var chromeProfilePicker: some View {
@@ -302,30 +297,19 @@ struct AccentView: View {
         .padding(.horizontal, 14).padding(.bottom, 12)
         .disabled(state.busy)
     }
-    private func actionButton(_ title: String, symbol: String, disabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 9) {
-                Image(systemName: symbol).frame(width: 17)
-                Text(title).font(.system(size: 12, weight: .medium))
-                Spacer()
-                Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
-            }.padding(.horizontal, 12).padding(.vertical, 10)
-                .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 9))
-                .contentShape(Rectangle())
-        }.buttonStyle(.plain).disabled(disabled)
-    }
     private var feedback: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: state.isError ? "exclamationmark.circle" : "info.circle").font(.system(size: 12)).padding(.top, 1)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: state.isError ? "exclamationmark.circle" : "info.circle").font(.system(size: 12))
             Text(state.message).font(.system(size: 11)).fixedSize(horizontal: false, vertical: true)
         }.foregroundStyle(state.isError ? Color.red : Color.secondary).frame(maxWidth: .infinity, minHeight: 32, alignment: .topLeading)
             .accessibilityElement(children: .combine)
     }
     private var footer: some View {
-        HStack(spacing: 16) {
-            Spacer()
-            Button("종료") { NSApp.terminate(nil) }.buttonStyle(.plain).disabled(state.busy)
-        }.font(.system(size: 11)).foregroundStyle(.secondary).padding(.top, 5)
+        HStack(alignment: .firstTextBaseline, spacing: 16) {
+            feedback
+            Button("종료") { NSApp.terminate(nil) }
+                .buttonStyle(.plain).fixedSize().disabled(state.busy)
+        }.font(.system(size: 11)).foregroundStyle(.secondary)
     }
 }
 
